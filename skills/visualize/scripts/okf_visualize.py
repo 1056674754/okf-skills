@@ -200,13 +200,25 @@ const side=document.getElementById('side');
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function relList(title,arr){if(!arr.length)return'';
  return `<div class="rel"><h4>${title}</h4>${arr.map(id=>`<a data-go="${esc(id)}">${esc((byId[id]||{}).title||id)}</a>`).join('')}</div>`;}
+// Resolve an in-body markdown link href to a concept id, mirroring build()'s
+// resolution: strip #anchor, require .md, absolute strips leading /, relative
+// resolves against the current concept's dir. Returns null if it's not a concept.
+function resolveHref(cid,href){let t=(href||'').split('#')[0];if(!t.endsWith('.md'))return null;
+ let tgt;if(t[0]==='/'){tgt=t.replace(/^\/+/,'').slice(0,-3);}
+ else{const base=cid.split('/').slice(0,-1);
+  for(const seg of t.slice(0,-3).split('/')){if(seg===''||seg==='.')continue;
+   if(seg==='..'){if(!base.length)return null;base.pop();}else base.push(seg);}
+  tgt=base.join('/');}
+ return byId[tgt]?tgt:null;}
 function show(id){const n=byId[id];if(!n)return;const c=color[n.type];
  side.innerHTML=`<span class="type" style="background:${c}">${esc(n.type)}</span>
  <h2>${esc(n.title)}</h2><div class="desc">${esc(n.description)||'<span class=empty>no description</span>'}</div>
  <div class="tags">${(n.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
  ${relList('Links to',outL[id])}${relList('Cited by',inL[id])}
  <div class="body">${n.body?DOMPurify.sanitize(marked.parse(n.body)):'<span class=empty>empty body</span>'}</div>`;
- side.querySelectorAll('[data-go]').forEach(a=>a.onclick=()=>select(a.getAttribute('data-go')));}
+ side.querySelectorAll('[data-go]').forEach(a=>a.onclick=()=>select(a.getAttribute('data-go')));
+ side.querySelectorAll('.body a[href]').forEach(a=>{const tgt=resolveHref(id,a.getAttribute('href'));
+  if(tgt)a.onclick=e=>{e.preventDefault();select(tgt);};});}
 function select(id){const ele=cy.getElementById(id);if(!ele.length)return;show(id);
  cy.elements().removeClass('hl').addClass('dim');const nb=ele.closedNeighborhood();nb.removeClass('dim');ele.addClass('hl');
  cy.animate({center:{eles:ele},duration:250});
