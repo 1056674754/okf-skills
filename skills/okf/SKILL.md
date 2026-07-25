@@ -102,11 +102,11 @@ is given. Then extend it:
 ## Validation (do this before declaring done)
 
 Never eyeball conformance — run the deterministic checker. Invoke the companion
-**`validate`** skill (`/okf:validate <bundle-dir> --strict`), which ships the
+**`okf-validate`** skill (`/okf-validate <bundle-dir> --strict`), which ships the
 checker. If that skill is not installed, run it directly:
 
 ```bash
-uv run "${CLAUDE_SKILL_DIR}/../validate/scripts/okf_validate.py" <bundle-dir> --strict
+uv run "${CLAUDE_SKILL_DIR}/../okf-validate/scripts/okf_validate.py" <bundle-dir> --strict
 ```
 
 Resolve every `ERROR` (hard §9 failures). Warnings are soft; fix them when cheap,
